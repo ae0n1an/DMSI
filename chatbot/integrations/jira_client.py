@@ -1,7 +1,10 @@
+import logging
 import os
 import requests
 from requests.auth import HTTPBasicAuth
 from utils import mock_data
+
+log = logging.getLogger(__name__)
 
 
 def _use_mock() -> bool:
@@ -21,8 +24,11 @@ def ping() -> bool:
         return False
     try:
         resp = requests.get(f"{_base_url()}/rest/api/2/myself", auth=_auth(), timeout=5)
+        if resp.status_code != 200:
+            log.warning("Jira ping failed: HTTP %s — %s", resp.status_code, resp.text[:200])
         return resp.status_code == 200
-    except Exception:
+    except Exception as exc:
+        log.warning("Jira ping error: %s", exc)
         return False
 
 

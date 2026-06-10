@@ -1,7 +1,10 @@
+import logging
 import os
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 from utils import mock_data
+
+log = logging.getLogger(__name__)
 
 
 def _use_mock() -> bool:
@@ -22,7 +25,8 @@ def ping() -> bool:
     try:
         _client().auth_test()
         return True
-    except Exception:
+    except Exception as exc:
+        log.warning("Slack ping error: %s", exc)
         return False
 
 

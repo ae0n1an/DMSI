@@ -34,4 +34,4 @@ def post_slack_message(text: str) -> str:
     return f"Failed to post message: {result.get('error', 'unknown error')}"
 
 
-slack_tools = [get_slack_messages, search_slack_messages, post_slack_message]
+slack_tools = [get_slack_messages, search_slack_messages]

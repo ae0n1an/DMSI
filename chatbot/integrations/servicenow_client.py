@@ -1,7 +1,10 @@
+import logging
 import os
 import requests
 from requests.auth import HTTPBasicAuth
 from utils import mock_data
+
+log = logging.getLogger(__name__)
 
 
 def _use_mock() -> bool:
@@ -29,8 +32,11 @@ def ping() -> bool:
             auth=_auth(),
             timeout=5,
         )
+        if resp.status_code != 200:
+            log.warning("ServiceNow ping failed: HTTP %s — %s", resp.status_code, resp.text[:200])
         return resp.status_code == 200
-    except Exception:
+    except Exception as exc:
+        log.warning("ServiceNow ping error: %s", exc)
         return False
 
 
