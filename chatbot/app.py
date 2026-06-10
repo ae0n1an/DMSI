@@ -91,7 +91,7 @@ def _render_sidebar() -> None:
         use_mock = os.getenv("USE_MOCK_DATA", "false").lower() == "true"
 
         for name in ["jira", "servicenow", "slack"]:
-            dot = "🟢" if status.get(name) else "🔴"
+            dot = "🟢" if (use_mock or status.get(name)) else "🔴"
             label = "Mock" if use_mock else ("Connected" if status.get(name) else "Unreachable")
             st.write(f"{dot} **{name.capitalize()}** — {label}")
 
