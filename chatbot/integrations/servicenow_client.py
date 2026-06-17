@@ -3,6 +3,7 @@ import os
 import requests
 from requests.auth import HTTPBasicAuth
 from utils import mock_data
+from integrations import servicenow_store
 
 log = logging.getLogger(__name__)
 
@@ -41,6 +42,8 @@ def ping() -> bool:
 
 
 def get_incidents(state: str | None = None) -> list[dict]:
+    if servicenow_store.is_loaded():
+        return servicenow_store.get_incidents(state=state)
     if _use_mock():
         return mock_data.get_servicenow_incidents(state)
     try:
@@ -64,6 +67,8 @@ def get_incidents(state: str | None = None) -> list[dict]:
 
 
 def get_incident(number: str) -> dict | None:
+    if servicenow_store.is_loaded():
+        return servicenow_store.get_ticket(number)
     if _use_mock():
         return mock_data.get_servicenow_incident(number)
     try:
@@ -81,6 +86,10 @@ def get_incident(number: str) -> dict | None:
 
 
 def get_stats() -> dict:
+    if servicenow_store.is_loaded():
+        summary = servicenow_store.get_priority_summary()
+        by_priority = {f"P{k}": sum(v.values()) for k, v in summary.items()}
+        return {"by_priority": by_priority, "by_category": {}}
     if _use_mock():
         return mock_data.get_servicenow_stats()
     try:
