@@ -49,6 +49,6 @@ def test_post_slack_message_mock():
     assert "posted successfully" in result.lower()
 
 
-def test_slack_tools_list_has_three_tools():
-    assert len(slack_tools) == 3
+def test_slack_tools_list_has_two_tools():
+    assert len(slack_tools) == 2
     assert all(isinstance(t, BaseTool) for t in slack_tools)
