@@ -9,6 +9,8 @@ from visualizations.charts import (
     sla_breach_line_chart,
     resolution_histogram,
     cross_system_bar_chart,
+    priority_summary_bar,
+    stage_time_bar,
 )
 
 
@@ -63,9 +65,6 @@ def test_build_chart_unknown_type_raises():
 def test_ticket_volume_custom_title():
     fig = ticket_volume_chart({"statuses": {"Open": 5}}, title="My Chart")
     assert fig.layout.title.text == "My Chart"
-
-
-from visualizations.charts import priority_summary_bar, stage_time_bar
 
 
 def test_priority_summary_bar_returns_figure():
