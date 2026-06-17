@@ -11,7 +11,7 @@ from tools.slack_tools import slack_tools
 from tools.servicenow_tools import servicenow_tools
 from tools.chart_tool import render_chart
 from visualizations.charts import build_chart
-from integrations import jira_client, slack_client, servicenow_client
+from integrations import jira_client, slack_client, servicenow_client, servicenow_store
 
 load_dotenv()
 
@@ -23,7 +23,13 @@ st.set_page_config(
 
 _SYSTEM_PROMPT = (
     "You are a helpful IT operations assistant. You can query Jira, Slack, and ServiceNow "
-    "to answer questions. When showing data with multiple items or metrics, always render a chart. "
+    "to answer questions. ServiceNow data is loaded from an xlsx export — use "
+    "get_servicenow_priority_summary for L1/L2/L3/L4 ticket counts, "
+    "get_servicenow_stage_times for time spent in each stage, "
+    "get_servicenow_ticket to look up a specific ticket by ID, "
+    "get_servicenow_tickets to filter tickets, and "
+    "query_servicenow_sql for any other ServiceNow query. "
+    "When showing data with multiple items or metrics, always render a chart. "
     "Be concise and professional."
 )
 
@@ -98,6 +104,28 @@ def _render_sidebar() -> None:
         channel_id = slack_client.get_channel_id()
         if channel_id:
             st.caption(f"Channel: {channel_id}")
+
+        st.divider()
+        st.header("ServiceNow Data")
+
+        last = servicenow_store.get_last_upload()
+        if last:
+            st.caption(
+                f"Loaded: **{last['filename']}** — {last['row_count']} rows — {last['uploaded_at'][:10]}"
+            )
+        else:
+            st.caption("No data loaded.")
+
+        if os.getenv("DEV_MODE", "false").lower() == "true":
+            uploaded = st.file_uploader("Upload ServiceNow xlsx", type=["xlsx"])
+            if uploaded is not None:
+                with st.spinner("Loading…"):
+                    try:
+                        count = servicenow_store.load_xlsx(uploaded.read(), uploaded.name)
+                        st.success(f"Loaded {count} rows from {uploaded.name}")
+                        st.session_state["executor"] = None
+                    except Exception as exc:
+                        st.error(f"Upload failed: {exc}")
 
         st.divider()
         st.header("Settings")
