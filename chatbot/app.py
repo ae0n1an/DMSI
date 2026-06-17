@@ -42,6 +42,7 @@ def _init_session() -> None:
         "slack_messages": [],
         "executor": None,
         "connection_status": None,
+        "_last_uploaded": None,
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -118,12 +119,13 @@ def _render_sidebar() -> None:
 
         if os.getenv("DEV_MODE", "false").lower() == "true":
             uploaded = st.file_uploader("Upload ServiceNow xlsx", type=["xlsx"])
-            if uploaded is not None:
+            if uploaded is not None and st.session_state.get("_last_uploaded") != uploaded.name:
                 with st.spinner("Loading…"):
                     try:
                         count = servicenow_store.load_xlsx(uploaded.read(), uploaded.name)
-                        st.success(f"Loaded {count} rows from {uploaded.name}")
+                        st.session_state["_last_uploaded"] = uploaded.name
                         st.session_state["executor"] = None
+                        st.success(f"Loaded {count} rows from {uploaded.name}")
                     except Exception as exc:
                         st.error(f"Upload failed: {exc}")
 

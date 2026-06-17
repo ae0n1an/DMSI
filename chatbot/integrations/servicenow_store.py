@@ -138,6 +138,8 @@ def get_priority_summary() -> dict:
             result: dict = {}
             for row in cur.fetchall():
                 p = row["priority"]
+                if p is None:
+                    continue   # skip tickets with no priority set
                 s = str(row["state"]).lower() if row["state"] else "unknown"
                 if p not in result:
                     result[p] = {}
