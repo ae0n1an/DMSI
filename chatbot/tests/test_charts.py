@@ -63,3 +63,53 @@ def test_build_chart_unknown_type_raises():
 def test_ticket_volume_custom_title():
     fig = ticket_volume_chart({"statuses": {"Open": 5}}, title="My Chart")
     assert fig.layout.title.text == "My Chart"
+
+
+from visualizations.charts import priority_summary_bar, stage_time_bar
+
+
+def test_priority_summary_bar_returns_figure():
+    data = {"priorities": {1: {"open": 3, "resolved": 1}, 2: {"in_progress": 2}}}
+    fig = priority_summary_bar(data)
+    assert isinstance(fig, go.Figure)
+    assert len(fig.data) > 0
+
+
+def test_priority_summary_bar_has_l1_to_l4_labels():
+    data = {"priorities": {1: {"open": 3}, 2: {"open": 2}, 3: {"resolved": 5}, 4: {"open": 1}}}
+    fig = priority_summary_bar(data)
+    all_x = [x for trace in fig.data for x in (trace.x or [])]
+    assert "L1" in all_x
+    assert "L4" in all_x
+
+
+def test_priority_summary_bar_custom_title():
+    data = {"priorities": {1: {"open": 1}}}
+    fig = priority_summary_bar(data, title="My Priority Chart")
+    assert fig.layout.title.text == "My Priority Chart"
+
+
+def test_stage_time_bar_returns_figure():
+    data = {"stage_times": {1: {"queue_days": 1.0, "resolution_days": 2.0, "total_days": 3.0}}}
+    fig = stage_time_bar(data)
+    assert isinstance(fig, go.Figure)
+    assert len(fig.data) > 0
+
+
+def test_stage_time_bar_has_stage_labels():
+    data = {"stage_times": {1: {"queue_days": 1.0, "resolution_days": 2.0, "total_days": 3.0}}}
+    fig = stage_time_bar(data)
+    all_x = [x for trace in fig.data for x in (trace.x or [])]
+    assert any("queue" in str(x).lower() or "Queue" in str(x) for x in all_x)
+
+
+def test_build_chart_dispatches_priority_summary_bar():
+    data = {"priorities": {1: {"open": 2}}}
+    fig = build_chart("priority_summary_bar", data)
+    assert isinstance(fig, go.Figure)
+
+
+def test_build_chart_dispatches_stage_time_bar():
+    data = {"stage_times": {1: {"queue_days": 1.0, "resolution_days": 2.0, "total_days": 3.0}}}
+    fig = build_chart("stage_time_bar", data)
+    assert isinstance(fig, go.Figure)

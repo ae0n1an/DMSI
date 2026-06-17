@@ -89,12 +89,64 @@ def cross_system_bar_chart(data: dict, title: str = "") -> go.Figure:
     return fig
 
 
+def priority_summary_bar(data: dict, title: str = "") -> go.Figure:
+    priorities = data.get("priorities", {})
+    all_states = sorted({s for states in priorities.values() for s in states})
+    state_colors = {"open": "#EF4444", "in_progress": "#F59E0B", "resolved": "#10B981"}
+    x_labels = [f"L{p}" for p in sorted(priorities.keys())]
+    fig = go.Figure()
+    for state in all_states:
+        y_vals = [priorities.get(p, {}).get(state, 0) for p in sorted(priorities.keys())]
+        fig.add_trace(go.Bar(
+            name=state.replace("_", " ").title(),
+            x=x_labels,
+            y=y_vals,
+            marker_color=state_colors.get(state, "#6B7280"),
+        ))
+    fig.update_layout(
+        title=title or "Ticket Volume by Priority and State",
+        xaxis_title="Priority",
+        yaxis_title="Count",
+        barmode="group",
+        template="plotly_dark",
+    )
+    return fig
+
+
+def stage_time_bar(data: dict, title: str = "") -> go.Figure:
+    stage_times = data.get("stage_times", {})
+    stages = ["queue_days", "resolution_days", "total_days"]
+    stage_labels = ["Queue Time", "Resolution Time", "Total Time"]
+    priority_colors = {"L1": "#EF4444", "L2": "#F59E0B", "L3": "#3B82F6", "L4": "#6B7280"}
+    fig = go.Figure()
+    for priority in sorted(stage_times.keys()):
+        label = f"L{priority}"
+        times = stage_times[priority]
+        y_vals = [times.get(s) or 0 for s in stages]
+        fig.add_trace(go.Bar(
+            name=label,
+            x=stage_labels,
+            y=y_vals,
+            marker_color=priority_colors.get(label, "#9CA3AF"),
+        ))
+    fig.update_layout(
+        title=title or "Average Time per Stage by Priority",
+        xaxis_title="Stage",
+        yaxis_title="Average Days",
+        barmode="group",
+        template="plotly_dark",
+    )
+    return fig
+
+
 _BUILDERS = {
     "ticket_volume": ticket_volume_chart,
     "priority_donut": priority_donut_chart,
     "sla_breach_line": sla_breach_line_chart,
     "resolution_histogram": resolution_histogram,
     "cross_system_bar": cross_system_bar_chart,
+    "priority_summary_bar": priority_summary_bar,
+    "stage_time_bar": stage_time_bar,
 }
 
 
