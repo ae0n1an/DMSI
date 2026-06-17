@@ -1,4 +1,4 @@
-from langchain_core.tools import tool
+from langchain_core.tools import tool, StructuredTool
 from integrations import servicenow_client, servicenow_store
 
 _SCHEMA = (
@@ -90,15 +90,7 @@ def get_servicenow_tickets(
     )
 
 
-@tool(
-    description=(
-        "Run a read-only SQL SELECT query against the ServiceNow incidents database. "
-        "Only SELECT statements are allowed. "
-        f"{_SCHEMA} "
-        "Example: SELECT number, short_description FROM incidents WHERE priority = 1 AND state = 'open'"
-    )
-)
-def query_servicenow_sql(sql: str) -> str:
+def _query_servicenow_sql(sql: str) -> str:
     if not servicenow_store.is_loaded():
         return "No data loaded — upload an xlsx file first."
     try:
@@ -112,6 +104,18 @@ def query_servicenow_sql(sql: str) -> str:
         return "\n".join(lines)
     except ValueError as exc:
         return f"Error: {exc}"
+
+
+query_servicenow_sql = StructuredTool.from_function(
+    func=_query_servicenow_sql,
+    name="query_servicenow_sql",
+    description=(
+        "Run a read-only SQL SELECT query against the ServiceNow incidents database. "
+        "Only SELECT statements are allowed. "
+        f"{_SCHEMA} "
+        "Example: SELECT number, short_description FROM incidents WHERE priority = 1 AND state = 'open'"
+    ),
+)
 
 
 servicenow_tools = [
